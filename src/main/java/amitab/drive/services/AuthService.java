@@ -9,9 +9,13 @@ import amitab.drive.exception.BadRequestException;
 import amitab.drive.exception.ConflictException;
 import amitab.drive.exception.NotFoundException;
 import amitab.drive.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +26,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
+    private final AuthenticationManager authenticationManager;
 
     public RegisterResponseDTO registerUser(@Valid RegisterRequestDTO body) {
         String email = User.normalizeEmail(body.email());
@@ -37,12 +42,12 @@ public class AuthService {
         return RegisterResponseDTO.from(createdUser);
     }
 
+    @Transactional
     public TokenPair loginUser(LoginRequestDTO body) {
-        User user = userRepository.findByEmail(User.normalizeEmail(body.email()))
-                .orElseThrow(() -> new NotFoundException("User not found with the email"));
-        if (!passwordEncoder.matches(user.getPassword(), body.password())) {
-            throw new BadRequestException("Invalid credentials");
-        }
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(body.email(), body.password())
+        );
+        User user = (User) authentication.getPrincipal();
         return tokenService.issueToken(user);
     }
 }
