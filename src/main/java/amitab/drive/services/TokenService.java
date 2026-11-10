@@ -31,6 +31,7 @@ public class TokenService {
         t.setExpiresAt(Instant.now().plusSeconds(refreshTokenTtl));
         t.setRefreshToken(hashedRefreshToken);
 
+        tokenRepository.save(t);
         return new TokenPair(accessToken, refreshToken);
     }
 }
