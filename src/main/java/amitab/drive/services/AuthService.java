@@ -1,9 +1,6 @@
 package amitab.drive.services;
 
-import amitab.drive.dto.LoginRequestDTO;
-import amitab.drive.dto.RegisterRequestDTO;
-import amitab.drive.dto.RegisterResponseDTO;
-import amitab.drive.dto.TokenPair;
+import amitab.drive.dto.*;
 import amitab.drive.entity.User;
 import amitab.drive.exception.BadRequestException;
 import amitab.drive.exception.ConflictException;
@@ -49,5 +46,13 @@ public class AuthService {
         );
         User user = (User) authentication.getPrincipal();
         return tokenService.issueToken(user);
+    }
+
+    public void logoutUser(String refreshToken) {
+        tokenService.revokeRefreshToken(refreshToken);
+    }
+
+    public TokenPair refreshAccessToken(String refreshToken) {
+        return tokenService.rotateRefreshToken(refreshToken);
     }
 }

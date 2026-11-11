@@ -19,7 +19,7 @@ public class Token {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    private User userId;
+    private User user;
 
     @Column(name = "refresh_token", nullable = false, unique = true)
     private String refreshToken;
