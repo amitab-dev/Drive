@@ -1,6 +1,6 @@
 package amitab.drive.entity;
 
-public enum Role {
+public enum UserRole {
     USER,
     PLATFORM
 }

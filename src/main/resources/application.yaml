@@ -18,3 +18,9 @@ jwt:
   access-secret: ${JWT_SECRET:this-is-a-jwt-secret-make-sure-to-change-it-in-prod}
   access-ttl-in-sec: ${JWT_TTL:900}
   refresh-ttl-in-sec: ${REFRESH_TTL:604800}
+
+aws:
+  s3:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    bucket: ${S3_BUCKET_NAME}

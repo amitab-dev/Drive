@@ -1,6 +1,6 @@
 package amitab.drive.dto;
 
-import amitab.drive.entity.Role;
+import amitab.drive.entity.UserRole;
 import amitab.drive.entity.User;
 
 import java.time.Instant;
@@ -11,7 +11,7 @@ public record RegisterResponseDTO(
         String fullName,
         String email,
         String avatar,
-        Role role,
+        UserRole role,
         Instant createdAt,
         Instant updatedAt
 ) {
