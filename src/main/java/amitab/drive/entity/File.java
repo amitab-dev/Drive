@@ -25,8 +25,11 @@ public class File {
     @JoinColumn(name = "owner_id", nullable = false)
     private User ownerId;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "file_name", nullable = false)
+    private String fileName;
+
+    @Column(name = "file_key", nullable = false, columnDefinition = "TEXT")
+    private String fileKey;
 
     @Enumerated(value = EnumType.STRING)
     @Column(name = "type", nullable = false)
