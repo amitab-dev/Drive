@@ -3,6 +3,8 @@ package amitab.drive.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.context.annotation.Configuration;
 import tools.jackson.databind.node.StringNode;
 
@@ -19,7 +21,7 @@ public class File {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false)
     private User ownerId;
 
@@ -49,4 +51,15 @@ public class File {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @PrePersist
+    protected void onCreate() {
+        Instant now = Instant.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

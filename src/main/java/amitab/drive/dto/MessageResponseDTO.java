@@ -1,4 +1,4 @@
 package amitab.drive.dto;
 
-public record MessageResponseDTO(String message) {
+public record MessageResponseDTO(boolean success,String message) {
 }

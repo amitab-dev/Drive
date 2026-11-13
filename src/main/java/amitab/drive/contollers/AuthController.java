@@ -54,7 +54,7 @@ public class AuthController {
             authService.logoutUser(refreshToken);
         }
         clearTokenCookies(response);
-        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponseDTO("User logged out"));
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponseDTO(true, "User logged out"));
     }
 
     @GetMapping("/refresh")

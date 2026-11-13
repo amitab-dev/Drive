@@ -26,22 +26,23 @@ public class FileService {
     public MessageResponseDTO uploadFile(UUID userId, MultipartFile file) {
         User owner = userRepository.getReferenceById(userId);
         String fileName = file.getOriginalFilename();
+        String baseName = owner.getId() + "/" + fileName;
 
         try {
-            s3Service.uploadFile(fileName, file.getInputStream());
+            s3Service.uploadFile(baseName, file.getInputStream(), file.getSize());
         } catch (IOException ex) {
-            new BadRequestException("File not found");
+            throw new BadRequestException("File not found");
         }
 
         File f = new File();
         f.setOwnerId(owner);
         f.setName(fileName);
-        f.setType(FileType.FOLDER);
+        f.setType(FileType.FILE);
         f.setMimeType(file.getContentType());
         f.setFileSize(file.getSize());
         f.setStatus(FileStatus.PENDING);
         fileRepository.save(f);
 
-        return new MessageResponseDTO("File uploaded");
+        return new MessageResponseDTO(true, "File uploaded");
     }
 }

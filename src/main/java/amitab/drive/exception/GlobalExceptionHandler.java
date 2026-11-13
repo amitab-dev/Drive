@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ErrorResponseDTO> build(HttpStatus status, String message, HttpServletRequest request) {
-        return ResponseEntity.status(status).body(new ErrorResponseDTO(status, message, request.getRequestURI(), Instant.now()));
+        return ResponseEntity.status(status).body(new ErrorResponseDTO(false, status, message, request.getRequestURI(), Instant.now()));
     }
 
 }
