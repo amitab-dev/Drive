@@ -28,7 +28,7 @@ public class File {
     @Column(name = "file_name", nullable = false)
     private String fileName;
 
-    @Column(name = "file_key", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "file_key", nullable = false, unique = true, columnDefinition = "TEXT")
     private String fileKey;
 
     @Enumerated(value = EnumType.STRING)

@@ -1,6 +1,6 @@
 package amitab.drive.services;
 
-import amitab.drive.dto.MessageResponseDTO;
+import amitab.drive.dto.file.FileResponseDto;
 import amitab.drive.entity.File;
 import amitab.drive.entity.FileStatus;
 import amitab.drive.entity.FileType;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,7 +29,7 @@ public class FileService {
     private final UserRepository userRepository;
 
     @Transactional
-    public MessageResponseDTO uploadFile(UUID userId, MultipartFile file) {
+    public FileResponseDto uploadFile(UUID userId, MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new BadRequestException("No file found, Please choose a file to upload");
         }
@@ -59,6 +60,16 @@ public class FileService {
             throw new InternalServerErrorException("Could not save this file. Please try again");
         }
 
-        return new MessageResponseDTO(true, "File uploaded");
+        return FileResponseDto.from(key);
+    }
+
+    @Transactional
+    public FileResponseDto uploadFolder(UUID userId, MultipartFile folder) {
+
+        return null;
+    }
+
+    public FileResponseDto createFolder(UUID userId, String folderName) {
+        return null;
     }
 }
