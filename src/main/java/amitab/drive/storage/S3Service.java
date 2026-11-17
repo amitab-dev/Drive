@@ -9,6 +9,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,7 +45,7 @@ public class S3Service implements ObjectStorage {
 
     @Override
     public String createFolder(String folderName, UUID userId) {
-        String key = userId.toString() + "/" + folderName;
+        String key = userId.toString() + "/" + folderName + "/";
 
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucket)
@@ -61,7 +62,7 @@ public class S3Service implements ObjectStorage {
     }
 
     @Override
-    public List<?> listFiles(UUID userId) {
+    public List<S3Object> listFiles(UUID userId) {
         ListObjectsRequest request = ListObjectsRequest.builder()
                 .bucket(bucket)
                 .prefix(userId.toString())

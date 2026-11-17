@@ -41,7 +41,7 @@ public class AuthController {
     ) {
         TokenPair tokens = authService.loginUser(body);
         setTokenCookies(res, tokens);
-        return ResponseEntity.status(HttpStatus.OK).body(new LoginResponseDTO(tokens.accessToken()));
+        return ResponseEntity.status(HttpStatus.OK).body(new LoginResponseDTO(tokens.userId(), tokens.accessToken()));
     }
 
     @GetMapping("/logout")
@@ -68,7 +68,7 @@ public class AuthController {
         }
         TokenPair tokens = authService.refreshAccessToken(refreshToken);
         setTokenCookies(response, tokens);
-        return ResponseEntity.status(HttpStatus.OK).body(new LoginResponseDTO(tokens.accessToken()));
+        return ResponseEntity.status(HttpStatus.OK).body(new LoginResponseDTO(tokens.userId(), tokens.accessToken()));
     }
 
     private String getRefreshToken(HttpServletRequest request) {

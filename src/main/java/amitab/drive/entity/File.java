@@ -22,8 +22,8 @@ public class File {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private User ownerId;
+    @JoinColumn(name = "owner", nullable = false)
+    private User owner;
 
     @Column(name = "file_name", nullable = false)
     private String fileName;
@@ -44,6 +44,10 @@ public class File {
     @Enumerated(value = EnumType.STRING)
     @Column(name = "status", nullable = false)
     private FileStatus status = FileStatus.PENDING;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private File parent;
 
     @Column(name = "trashed_at")
     private Instant trashedAt;

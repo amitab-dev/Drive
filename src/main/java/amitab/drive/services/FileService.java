@@ -15,8 +15,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,7 +48,7 @@ public class FileService {
         }
 
         File f = new File();
-        f.setOwnerId(user);
+        f.setOwner(user);
         f.setFileName(file.getOriginalFilename());
         f.setFileKey(key);
         f.setType(FileType.FILE);
@@ -65,11 +68,23 @@ public class FileService {
 
     @Transactional
     public FileResponseDto uploadFolder(UUID userId, MultipartFile folder) {
-
         return null;
     }
 
     public FileResponseDto createFolder(UUID userId, String folderName) {
-        return null;
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        String key = userId + "/" + folderName;
+        if (fileRepository.findByFileKey(key).isPresent()) {
+            throw new BadRequestException("Folder exists");
+        }
+        String folderKey = s3Service.createFolder(folderName, userId);
+        return FileResponseDto.from(folderKey);
+    }
+
+    public List<S3Object> listFile(UUID userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return s3Service.listFiles(userId);
     }
 }

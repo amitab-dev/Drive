@@ -35,7 +35,7 @@ public class TokenService {
         t.setRefreshToken(hashedRefreshToken);
 
         tokenRepository.save(t);
-        return new TokenPair(accessToken, refreshToken);
+        return new TokenPair(user.getId(), accessToken, refreshToken);
     }
 
     @Transactional

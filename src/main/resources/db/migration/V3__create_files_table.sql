@@ -1,7 +1,7 @@
 CREATE TABLE files
 (
     id         UUID PRIMARY KEY                             NOT NULL DEFAULT gen_random_uuid(),
-    owner_id   UUID REFERENCES users (id) ON DELETE CASCADE NOT NULL,
+    owner      UUID REFERENCES users (id) ON DELETE CASCADE NOT NULL,
     type       VARCHAR                                      NOT NULL,
     name       TEXT                                         NOT NULL,
     mime_type  TEXT                                         NOT NULL,
