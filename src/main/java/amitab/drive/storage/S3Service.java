@@ -1,17 +1,16 @@
 package amitab.drive.storage;
 
+import amitab.drive.dto.file.FileItemDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,13 +61,24 @@ public class S3Service implements ObjectStorage {
     }
 
     @Override
-    public List<S3Object> listFiles(UUID userId) {
-        ListObjectsRequest request = ListObjectsRequest.builder()
+    public List<FileItemDto> listFiles(UUID userId) {
+        String prefix = userId + "/";
+
+        ListObjectsV2Request request = ListObjectsV2Request.builder()
                 .bucket(bucket)
-                .prefix(userId.toString())
+                .prefix(prefix)
                 .build();
-        ListObjectsResponse response = s3Client.listObjects(request);
-        return response.contents();
+
+        List<FileItemDto> files = new ArrayList<>();
+        for (ListObjectsV2Response pages: s3Client.listObjectsV2Paginator(request)) {
+            for (S3Object objs : pages.contents()) {
+                if (objs.key().endsWith("/")) continue;
+                String name  = objs.key().substring(prefix.length());
+                files.add(new FileItemDto(objs.key(), name, objs.size(), objs.lastModified()));
+            }
+
+        }
+        return files;
     }
 
     @Override

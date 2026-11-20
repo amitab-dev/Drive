@@ -1,5 +1,6 @@
 package amitab.drive.contollers;
 
+import amitab.drive.dto.file.FileItemDto;
 import amitab.drive.dto.file.FileResponseDto;
 import amitab.drive.dto.folder.CreateFolderRequestDTO;
 import amitab.drive.services.FileService;
@@ -29,10 +30,24 @@ public class FileController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<S3Object>> listFiles(
+    public ResponseEntity<List<FileItemDto>> listFiles(
             @PathVariable(name = "userId") UUID userId
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(fileService.listFile(userId));
+    }
+
+    @GetMapping("/{key}/download")
+    public ResponseEntity<String> downloadFile(
+            @PathVariable(name = "key") String key
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body("Hello world");
+    }
+
+    @DeleteMapping("/{keyId}")
+    public ResponseEntity<String> deleteFile(
+            @PathVariable(name = "keyId") String keyId
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body("Deleted");
     }
 
     @PostMapping("/{userId}/upload-folder")

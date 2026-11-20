@@ -1,5 +1,6 @@
 package amitab.drive.services;
 
+import amitab.drive.dto.file.FileItemDto;
 import amitab.drive.dto.file.FileResponseDto;
 import amitab.drive.entity.File;
 import amitab.drive.entity.FileStatus;
@@ -82,7 +83,7 @@ public class FileService {
         return FileResponseDto.from(folderKey);
     }
 
-    public List<S3Object> listFile(UUID userId) {
+    public List<FileItemDto> listFile(UUID userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
         return s3Service.listFiles(userId);
