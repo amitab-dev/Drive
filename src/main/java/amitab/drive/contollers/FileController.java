@@ -39,37 +39,12 @@ public class FileController {
     }
 
     @GetMapping("/{userId}/{fileId}/download")
-    public ResponseEntity<InputStreamResource> downloadFile(
+    public ResponseEntity<String> downloadFile(
             @PathVariable(name = "userId") UUID userId,
             @PathVariable(name = "fileId") String fileId,
             @AuthenticationPrincipal User user
     ) {
-        DownloadFileDto file = fileService.downloadFile(userId, user, fileId);
-
-        MediaType contentType;
-        try {
-            contentType = file.contentType() != null
-                    ? MediaType.parseMediaType(file.contentType())
-                    : MediaType.APPLICATION_OCTET_STREAM;
-        } catch (InvalidMediaTypeException e) {
-            contentType = MediaType.APPLICATION_OCTET_STREAM;
-        }
-
-        ResponseEntity.BodyBuilder response = ResponseEntity.ok()
-                .contentType(contentType)
-                .header(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        ContentDisposition.attachment()
-                                .filename(file.fileName(), StandardCharsets.UTF_8)
-                                .build()
-                                .toString()
-                );
-
-        if (file.contentLength() != null) {
-            response.contentLength(file.contentLength());
-        }
-
-        return response.body(new InputStreamResource(file.stream()));
+        return ResponseEntity.ok("File downloaded");
     }
 
     @DeleteMapping("/{keyId}")

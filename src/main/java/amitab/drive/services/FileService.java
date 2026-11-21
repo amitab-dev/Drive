@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -63,8 +64,7 @@ public class FileService {
             s3Service.deleteFile(key);
             throw new InternalServerErrorException("Could not save this file. Please try again");
         }
-
-        return FileResponseDto.from(key);
+        return FileResponseDto.from(f);
     }
 
     @Transactional
@@ -84,8 +84,13 @@ public class FileService {
     }
 
     public List<FileItemDto> listFile(UUID userId) {
-        userRepository.findById(userId)
+        User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        return s3Service.listFiles(userId);
+        List<File> files = fileRepository.findByOwner(owner);
+        List<FileItemDto> response = new ArrayList<>();
+        for (File f : files) {
+            response.add(FileItemDto.from(f));
+        }
+        return response;
     }
 }

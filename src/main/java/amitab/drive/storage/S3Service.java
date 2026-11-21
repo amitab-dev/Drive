@@ -63,27 +63,6 @@ public class S3Service implements ObjectStorage {
     }
 
     @Override
-    public List<FileItemDto> listFiles(UUID userId) {
-        String prefix = userId + "/";
-
-        ListObjectsV2Request request = ListObjectsV2Request.builder()
-                .bucket(bucket)
-                .prefix(prefix)
-                .build();
-
-        List<FileItemDto> files = new ArrayList<>();
-        for (ListObjectsV2Response pages : s3Client.listObjectsV2Paginator(request)) {
-            for (S3Object objs : pages.contents()) {
-                if (objs.key().endsWith("/")) continue;
-                String name = objs.key().substring(prefix.length());
-                files.add(new FileItemDto(null, objs.key(), name, objs.size(), objs.lastModified()));
-            }
-
-        }
-        return files;
-    }
-
-    @Override
     public void deleteFile(String key) {
         s3Client.deleteObject(b -> b.bucket(bucket).key(key));
     }

@@ -10,13 +10,11 @@ import java.util.UUID;
 public interface ObjectStorage {
     String uploadFile(MultipartFile file, UUID userId) throws IOException;
 
-    String uploadFolder(List<MultipartFile> file, UUID userId) throws  IOException;
+    String uploadFolder(List<MultipartFile> file, UUID userId) throws IOException;
 
     String createFolder(String name, UUID userId);
 
     InputStream downloadFile(String key) throws IOException;
-
-    List<?> listFiles(UUID userId);
 
     void deleteFile(String key);
 
