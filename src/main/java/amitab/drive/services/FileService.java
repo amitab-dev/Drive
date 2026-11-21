@@ -9,7 +9,6 @@ import amitab.drive.entity.User;
 import amitab.drive.exception.BadRequestException;
 import amitab.drive.exception.InternalServerErrorException;
 import amitab.drive.exception.NotFoundException;
-import amitab.drive.exception.UnauthorizedException;
 import amitab.drive.repository.FileRepository;
 import amitab.drive.repository.UserRepository;
 import amitab.drive.storage.S3Service;
@@ -17,10 +16,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +30,7 @@ public class FileService {
     private final S3Service s3Service;
     private final FileRepository fileRepository;
     private final UserRepository userRepository;
+    private static final long MAX_FILE_SIZE = 20L * 1024 * 1024;
 
     @Transactional
     public FileResponseDto uploadFile(UUID userId, MultipartFile file) {
@@ -42,14 +41,17 @@ public class FileService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with the user id not found"));
 
-        String key;
+        UUID fileId = UUID.randomUUID();
+        String key = userId + "/" + fileId + "::" + file.getOriginalFilename();
+
         try {
-            key = s3Service.uploadFile(file, userId);
+            s3Service.uploadFile(file, key);
         } catch (IOException e) {
             throw new InternalServerErrorException(e.getMessage());
         }
 
         File f = new File();
+        f.setId(fileId);
         f.setOwner(user);
         f.setFileName(file.getOriginalFilename());
         f.setFileKey(key);
@@ -92,5 +94,43 @@ public class FileService {
             response.add(FileItemDto.from(f));
         }
         return response;
+    }
+
+    public byte[] downloadFile(UUID userId, String fileId) {
+        String key = userId + "/" + fileId;
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        fileRepository.findByOwner(owner)
+                .stream()
+                .filter(file -> file.getFileKey().equals(key))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("File not found in DB"));
+
+        try {
+            return s3Service.downloadFile(key);
+        } catch (IOException ex) {
+            throw new RuntimeException("File not found");
+        }
+    }
+
+    public void downloadLargeFile(File file, OutputStream outputStream) {
+        String key = file.getOwner() + "/" + file.getFileKey();
+        try {
+            s3Service.downloadLargeFile(key, outputStream);
+        } catch (IOException ex) {
+            throw new InternalServerErrorException(ex.getMessage());
+        }
+    }
+
+    public File getFile(UUID userId, String fileId) {
+        String key = userId + "/" + fileId;
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return fileRepository.findByOwner(owner)
+                .stream()
+                .filter(file -> file.getFileKey().equals(key))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("File not found in DB"));
     }
 }
