@@ -9,6 +9,7 @@ import amitab.drive.entity.User;
 import amitab.drive.exception.BadRequestException;
 import amitab.drive.exception.InternalServerErrorException;
 import amitab.drive.exception.NotFoundException;
+import amitab.drive.exception.UnauthorizedException;
 import amitab.drive.repository.FileRepository;
 import amitab.drive.repository.UserRepository;
 import amitab.drive.storage.S3Service;
@@ -16,12 +17,11 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service

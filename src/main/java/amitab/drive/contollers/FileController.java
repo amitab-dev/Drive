@@ -3,14 +3,16 @@ package amitab.drive.contollers;
 import amitab.drive.dto.file.FileItemDto;
 import amitab.drive.dto.file.FileResponseDto;
 import amitab.drive.dto.folder.CreateFolderRequestDTO;
+import amitab.drive.entity.User;
 import amitab.drive.services.FileService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.model.S3Object;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,11 +38,38 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.OK).body(fileService.listFile(userId));
     }
 
-    @GetMapping("/{key}/download")
-    public ResponseEntity<String> downloadFile(
-            @PathVariable(name = "key") String key
+    @GetMapping("/{userId}/{fileId}/download")
+    public ResponseEntity<InputStreamResource> downloadFile(
+            @PathVariable(name = "userId") UUID userId,
+            @PathVariable(name = "fileId") String fileId,
+            @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.status(HttpStatus.OK).body("Hello world");
+        DownloadFileDto file = fileService.downloadFile(userId, user, fileId);
+
+        MediaType contentType;
+        try {
+            contentType = file.contentType() != null
+                    ? MediaType.parseMediaType(file.contentType())
+                    : MediaType.APPLICATION_OCTET_STREAM;
+        } catch (InvalidMediaTypeException e) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM;
+        }
+
+        ResponseEntity.BodyBuilder response = ResponseEntity.ok()
+                .contentType(contentType)
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment()
+                                .filename(file.fileName(), StandardCharsets.UTF_8)
+                                .build()
+                                .toString()
+                );
+
+        if (file.contentLength() != null) {
+            response.contentLength(file.contentLength());
+        }
+
+        return response.body(new InputStreamResource(file.stream()));
     }
 
     @DeleteMapping("/{keyId}")

@@ -2,7 +2,7 @@
 
 A Google Drive–style cloud storage backend built with **Spring Boot**. Users register, log in with JWT-based authentication, and store files and folders in **Amazon S3**, while file metadata lives in **PostgreSQL**.
 
-> **Status:** work in progress. Authentication, file upload, folder creation and listing work. Download, folder upload and trash/delete endpoints are not implemented yet (see [Roadmap](#roadmap)).
+> **Status:** work in progress. Authentication, file upload, download, folder creation and listing work. Folder upload and trash/delete endpoints are not implemented yet (see [Roadmap](#roadmap)).
 
 ## Features
 
@@ -11,6 +11,7 @@ A Google Drive–style cloud storage backend built with **Spring Boot**. Users r
   - Refresh tokens are random 64-byte values, stored only as SHA-256 hashes, and can be revoked on logout
   - Tokens are also set as `HttpOnly`, `Secure`, `SameSite=Lax` cookies
 - **File upload** – multipart uploads (up to 100 MB) streamed to S3, with a metadata record saved in PostgreSQL. If the database write fails, the uploaded S3 object is rolled back
+- **File download** – streams objects directly from S3 with the original filename and MIME type, restricted to the file's owner
 - **Folders** – create folders (stored as S3 prefixes); the schema supports nested folders through a self-referencing `parent_id`
 - **Per-user storage** – every object key is prefixed with the owner's user ID
 - **Versioned schema** – database migrations managed by Flyway
@@ -130,6 +131,7 @@ The response contains the user ID and access token, and the access and refresh t
 | --- | --- | --- |
 | `POST` | `/api/v1/file/{userId}/upload` | Upload a file (multipart field `file`) |
 | `GET` | `/api/v1/file/{userId}` | List the objects stored for a user |
+| `GET` | `/api/v1/file/{fileId}/download` | Download a file owned by the authenticated user |
 | `POST` | `/api/v1/file/{userId}/create-folder` | Create a folder (`{"folderName": "Documents"}`) |
 | `POST` | `/api/v1/file/{userId}/upload-folder` | Not implemented yet |
 
@@ -139,6 +141,13 @@ The response contains the user ID and access token, and the access and refresh t
 curl -X POST "http://localhost:8080/api/v1/file/<userId>/upload" \
   -H "Authorization: Bearer <access_token>" \
   -F "file=@./report.pdf"
+```
+
+**Example: download a file**
+
+```bash
+curl -OJ "http://localhost:8080/api/v1/file/<fileId>/download" \
+  -H "Authorization: Bearer <access_token>"
 ```
 
 ### Error format
@@ -182,7 +191,7 @@ src/main/resources/
 
 ## Roadmap
 
-- [ ] Download files
+- [x] Download files
 - [ ] Upload whole folders
 - [ ] Move to trash, restore and permanent delete
 - [ ] Rename and move files and folders

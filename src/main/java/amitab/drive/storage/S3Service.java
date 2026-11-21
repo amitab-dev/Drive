@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,11 +26,11 @@ public class S3Service implements ObjectStorage {
     @Override
     public String uploadFile(MultipartFile file, UUID userId) throws IOException {
         String fileId = UUID.randomUUID().toString();
-        String key = userId.toString() + "/" + fileId + "::" + file.getOriginalFilename();
+        String key = fileId + "::" + file.getOriginalFilename();
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
-                .key(key)
+                .key(userId + "/" + key)
                 .contentType(file.getContentType())
                 .build();
 
@@ -46,18 +47,19 @@ public class S3Service implements ObjectStorage {
     public String createFolder(String folderName, UUID userId) {
         String key = userId.toString() + "/" + folderName + "/";
 
-        PutObjectRequest request = PutObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .build();
+        PutObjectRequest request = PutObjectRequest.builder().bucket(bucket).key(key).build();
 
         s3Client.putObject(request, RequestBody.empty());
         return key;
     }
 
     @Override
-    public byte[] downloadFile(String key) {
-        return new byte[0];
+    public InputStream downloadFile(String key) throws IOException {
+        GetObjectRequest request = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+        return s3Client.getObject(request);
     }
 
     @Override
@@ -70,11 +72,11 @@ public class S3Service implements ObjectStorage {
                 .build();
 
         List<FileItemDto> files = new ArrayList<>();
-        for (ListObjectsV2Response pages: s3Client.listObjectsV2Paginator(request)) {
+        for (ListObjectsV2Response pages : s3Client.listObjectsV2Paginator(request)) {
             for (S3Object objs : pages.contents()) {
                 if (objs.key().endsWith("/")) continue;
-                String name  = objs.key().substring(prefix.length());
-                files.add(new FileItemDto(objs.key(), name, objs.size(), objs.lastModified()));
+                String name = objs.key().substring(prefix.length());
+                files.add(new FileItemDto(null, objs.key(), name, objs.size(), objs.lastModified()));
             }
 
         }
@@ -84,5 +86,10 @@ public class S3Service implements ObjectStorage {
     @Override
     public void deleteFile(String key) {
         s3Client.deleteObject(b -> b.bucket(bucket).key(key));
+    }
+
+    @Override
+    public List<?> listFolders(UUID userId) {
+        return List.of("");
     }
 }

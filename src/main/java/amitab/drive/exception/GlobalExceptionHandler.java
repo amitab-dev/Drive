@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.time.Instant;
@@ -38,6 +40,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponseDTO> handleTooLarge(MaxUploadSizeExceededException ex, HttpServletRequest request) {
         return build(HttpStatus.CONTENT_TOO_LARGE, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "Invalid request parameter", request);
+    }
+
+    @ExceptionHandler(NoSuchKeyException.class)
+    public ResponseEntity<ErrorResponseDTO> handleNoSuchKey(NoSuchKeyException ex, HttpServletRequest request) {
+        return build(HttpStatus.NOT_FOUND, "File not found", request);
     }
 
     @ExceptionHandler(S3Exception.class)
