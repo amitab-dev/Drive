@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
@@ -62,11 +63,12 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.OK).body(fileService.listFile(userId));
     }
 
-    @DeleteMapping("/{keyId}")
-    public ResponseEntity<String> deleteFile(
-            @PathVariable(name = "keyId") String keyId
+    @DeleteMapping("/{key}")
+    public ResponseEntity<FileItemDto> deleteFile(
+            @PathVariable(name = "key") String key,
+            @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.status(HttpStatus.OK).body("Deleted");
+        return ResponseEntity.status(HttpStatus.OK).body(fileService.deleteFile(key));
     }
 
     @PostMapping("/{userId}/upload-folder")

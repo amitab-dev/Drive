@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -108,5 +109,13 @@ public class FileService {
         } catch (IOException ex) {
             throw new InternalServerErrorException(ex.getMessage());
         }
+    }
+
+    @Transactional
+    public FileItemDto deleteFile(String key) {
+        File file = fileRepository.findByFileKey(key)
+                .orElseThrow(() -> new NotFoundException("File not found"));
+        file.setTrashedAt(Instant.now());
+        return FileItemDto.from(file);
     }
 }
