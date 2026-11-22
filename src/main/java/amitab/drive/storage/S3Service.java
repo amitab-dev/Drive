@@ -1,7 +1,6 @@
 package amitab.drive.storage;
 
-import amitab.drive.dto.file.FileItemDto;
-import amitab.drive.exception.InternalServerErrorException;
+import amitab.drive.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,6 @@ import software.amazon.awssdk.services.s3.model.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,10 +25,8 @@ public class S3Service implements ObjectStorage {
     private String bucket;
 
     @Override
-    public void uploadFile(MultipartFile file, String key) throws IOException {
-//        String fileId = UUID.randomUUID().toString();
-//        String key = userId + "/" + fileId + "::" + file.getOriginalFilename();
-
+    public String uploadFile(MultipartFile file, UUID userId) throws IOException {
+        String key = userId + "/" + file.getOriginalFilename();
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
@@ -38,6 +34,7 @@ public class S3Service implements ObjectStorage {
                 .build();
 
         s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+        return key;
     }
 
     @Override
@@ -56,22 +53,12 @@ public class S3Service implements ObjectStorage {
     }
 
     @Override
-    public byte[] downloadFile(String key) throws IOException {
+    public InputStream openStream(String key) throws IOException {
         GetObjectRequest request = GetObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
                 .build();
-        return s3Client.getObjectAsBytes(request).asByteArray();
-    }
-
-    @Override
-    public void downloadLargeFile(String key, OutputStream outputStream) throws IOException {
-        GetObjectRequest request = GetObjectRequest.builder()
-                .key(key)
-                .bucket(bucket)
-                .build();
-        ResponseInputStream<GetObjectResponse> inputStream = s3Client.getObject(request);
-        inputStream.transferTo(outputStream);
+        return s3Client.getObject(request);
     }
 
     @Override

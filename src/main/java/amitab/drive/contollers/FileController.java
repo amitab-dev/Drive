@@ -1,5 +1,6 @@
 package amitab.drive.contollers;
 
+import amitab.drive.dto.file.DownloadFileRequestDto;
 import amitab.drive.dto.file.FileItemDto;
 import amitab.drive.dto.file.FileResponseDto;
 import amitab.drive.dto.folder.CreateFolderRequestDTO;
@@ -7,14 +8,14 @@ import amitab.drive.entity.File;
 import amitab.drive.entity.User;
 import amitab.drive.services.FileService;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.connector.Response;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +26,26 @@ import java.util.UUID;
 public class FileController {
 
     private final FileService fileService;
-    private final static long MAX_FILE_SIZE = 20L * 1024 * 1024;
+
+    @PostMapping("/{userId}/download")
+    public ResponseEntity<Resource> downloadFile(
+            @PathVariable(name = "userId") UUID userId,
+            @RequestBody DownloadFileRequestDto fileId,
+            @AuthenticationPrincipal User user
+    ) {
+        File file = fileService.getFile(userId, fileId.key());
+        InputStream inputStream = fileService.openStream(file);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.parseMediaType(file.getMimeType()))
+                .contentLength(file.getFileSize())
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment()
+                                .filename(file.getFileName(), StandardCharsets.UTF_8)
+                                .build()
+                                .toString()
+                )
+                .body(new InputStreamResource(inputStream));
+    }
 
     @PostMapping("/{userId}/upload")
     public ResponseEntity<FileResponseDto> uploadFile(
@@ -40,42 +60,6 @@ public class FileController {
             @PathVariable(name = "userId") UUID userId
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(fileService.listFile(userId));
-    }
-
-    @GetMapping("/{userId}/{fileId}/download")
-    public ResponseEntity<?> downloadFile(
-            @PathVariable(name = "userId") UUID userId,
-            @PathVariable(name = "fileId") String fileId,
-            @AuthenticationPrincipal User user
-    ) {
-        File file = fileService.getFile(userId, fileId);
-
-        if (file.getFileSize() > MAX_FILE_SIZE) {
-            byte[] data = fileService.downloadFile(userId, fileId);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .contentType(MediaType.parseMediaType(file.getMimeType()))
-                    .contentLength(data.length)
-                    .header(
-                            HttpHeaders.CONTENT_DISPOSITION,
-                            ContentDisposition.attachment()
-                                    .filename(file.getFileName())
-                                    .build()
-                                    .toString()
-                    ).body(data);
-        }
-
-        StreamingResponseBody responseBody =
-                outputStream -> fileService.downloadLargeFile(file, outputStream);
-        return ResponseEntity.status(HttpStatus.OK)
-                .contentType(MediaType.parseMediaType(file.getMimeType()))
-                .contentLength(file.getFileSize())
-                .header(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        ContentDisposition.attachment()
-                                .filename(file.getFileName())
-                                .build()
-                                .toString()
-                ).body(responseBody);
     }
 
     @DeleteMapping("/{keyId}")

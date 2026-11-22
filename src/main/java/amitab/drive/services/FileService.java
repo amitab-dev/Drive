@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,17 +42,14 @@ public class FileService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with the user id not found"));
 
-        UUID fileId = UUID.randomUUID();
-        String key = userId + "/" + fileId + "::" + file.getOriginalFilename();
-
+        String key;
         try {
-            s3Service.uploadFile(file, key);
+            key = s3Service.uploadFile(file, user.getId());
         } catch (IOException e) {
             throw new InternalServerErrorException(e.getMessage());
         }
 
         File f = new File();
-        f.setId(fileId);
         f.setOwner(user);
         f.setFileName(file.getOriginalFilename());
         f.setFileKey(key);
@@ -96,41 +94,19 @@ public class FileService {
         return response;
     }
 
-    public byte[] downloadFile(UUID userId, String fileId) {
-        String key = userId + "/" + fileId;
-        User owner = userRepository.findById(userId)
+    public File getFile(UUID userId, String fileId) {
+        userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-
-        fileRepository.findByOwner(owner)
-                .stream()
-                .filter(file -> file.getFileKey().equals(key))
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("File not found in DB"));
-
-        try {
-            return s3Service.downloadFile(key);
-        } catch (IOException ex) {
-            throw new RuntimeException("File not found");
-        }
+        return fileRepository.findByFileKey(fileId)
+                .orElseThrow(() -> new NotFoundException("File not found"));
     }
 
-    public void downloadLargeFile(File file, OutputStream outputStream) {
-        String key = file.getOwner() + "/" + file.getFileKey();
+    public InputStream openStream(File file) {
+        String key = file.getFileKey();
         try {
-            s3Service.downloadLargeFile(key, outputStream);
+            return s3Service.openStream(key);
         } catch (IOException ex) {
             throw new InternalServerErrorException(ex.getMessage());
         }
-    }
-
-    public File getFile(UUID userId, String fileId) {
-        String key = userId + "/" + fileId;
-        User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
-        return fileRepository.findByOwner(owner)
-                .stream()
-                .filter(file -> file.getFileKey().equals(key))
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("File not found in DB"));
     }
 }
