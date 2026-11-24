@@ -87,7 +87,7 @@ public class FileService {
     public List<FileItemDto> listFile(UUID userId) {
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found"));
-        List<File> files = fileRepository.findByOwner(owner);
+        List<File> files = fileRepository.findByOwnerAndTrashedAtIsNull(owner);
         List<FileItemDto> response = new ArrayList<>();
         for (File f : files) {
             response.add(FileItemDto.from(f));

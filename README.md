@@ -2,7 +2,7 @@
 
 A Google Drive–style cloud storage backend built with **Spring Boot**. Users register, log in with JWT-based authentication, and store files and folders in **Amazon S3**, while file metadata lives in **PostgreSQL**.
 
-> **Status:** work in progress. Authentication, file upload, download, folder creation and listing work. Folder upload and trash/delete endpoints are not implemented yet (see [Roadmap](#roadmap)).
+> **Status:** work in progress. Authentication, file upload, download, folder creation and listing work. Folder upload and trash/delete endpoints are not implemented yet.
 
 ## Features
 
@@ -188,17 +188,6 @@ src/main/resources/
 | `users` | Accounts: name, unique email, hashed password, role |
 | `tokens` | Hashed refresh tokens with expiry and revocation time |
 | `files` | File and folder metadata: owner, name, S3 key, MIME type, size, status, parent folder, trash time |
-
-## Roadmap
-
-- [x] Download files
-- [ ] Upload whole folders
-- [ ] Move to trash, restore and permanent delete
-- [ ] Rename and move files and folders
-- [ ] Restrict file endpoints to the authenticated user's own ID
-- [ ] Share files with other users
-- [ ] Configurable S3 region
-- [ ] Unit and integration tests for services and controllers
 
 ## Contributing
 

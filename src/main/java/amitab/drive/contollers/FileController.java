@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.print.DocFlavor;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.Principal;
@@ -63,11 +64,13 @@ public class FileController {
         return ResponseEntity.status(HttpStatus.OK).body(fileService.listFile(userId));
     }
 
-    @DeleteMapping("/{key}")
+    @DeleteMapping("/{userId}/{filename}")
     public ResponseEntity<FileItemDto> deleteFile(
-            @PathVariable(name = "key") String key,
+            @PathVariable(name = "userId") UUID userId,
+            @PathVariable(name = "filename") String fileName,
             @AuthenticationPrincipal User user
     ) {
+        String key = userId + "/" + fileName;
         return ResponseEntity.status(HttpStatus.OK).body(fileService.deleteFile(key));
     }
 
