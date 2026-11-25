@@ -12,7 +12,6 @@ A Google Drive–style cloud storage backend built with **Spring Boot**. Users r
   - Tokens are also set as `HttpOnly`, `Secure`, `SameSite=Lax` cookies
 - **File upload** – multipart uploads (up to 100 MB) streamed to S3, with a metadata record saved in PostgreSQL. If the database write fails, the uploaded S3 object is rolled back
 - **File download** – streams objects directly from S3 with the original filename and MIME type, restricted to the file's owner
-- **Folders** – create folders (stored as S3 prefixes); the schema supports nested folders through a self-referencing `parent_id`
 - **Per-user storage** – every object key is prefixed with the owner's user ID
 - **Versioned schema** – database migrations managed by Flyway
 - **Consistent error responses** – a global exception handler returns a uniform JSON error body
@@ -195,4 +194,10 @@ Issues and pull requests are welcome. Please open an issue first to discuss any 
 
 ## License
 
-No license has been specified yet. Add a `LICENSE` file to define how others may use this code.
+This project is licensed under the
+GNU General Public License v3.0.
+
+You are free to use, modify, and distribute
+this software under the terms of GPL-3.0.
+
+See the LICENSE file for details.
